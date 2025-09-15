@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "370358383581",
+    "firebase_url": "https://nostri-products-default-rtdb.europe-west1.firebasedatabase.app",
+    "project_id": "nostri-products",
+    "storage_bucket": "nostri-products.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:370358383581:android:17c9ea4fef21f8deccbc34",
+        "android_client_info": {
+          "package_name": "com.example.techsupplier"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyArmRa-XUgvrQZxU-5xICKlhcRl6FPcYGg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
