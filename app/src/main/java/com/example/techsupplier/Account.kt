@@ -54,8 +54,10 @@ fun Registration(){
     }
 
     Card(elevation = CardDefaults
-        .elevatedCardElevation(4.dp)) {
-        Column(modifier = Modifier.fillMaxWidth(0.5f)) {
+        .elevatedCardElevation(4.dp), colors = CardDefaults.cardColors(
+            containerColor = Color(0xFFF8F8F0)
+        )) {
+        Column(modifier = Modifier.fillMaxWidth(0.7f)) {
             Row{
                 Button(modifier = Modifier
                     .weight(1/2f)
@@ -65,7 +67,7 @@ fun Registration(){
                 },
                     shape = RectangleShape, colors = ButtonDefaults
                         .buttonColors(
-                        backgroundColor = if(isSignIn) Color(0xFF8B1DB3) else Color.LightGray
+                        backgroundColor = if(isSignIn) Color(0xFFFF9A6E) else Color.LightGray
                         )) {
                     Text("Войти")
                 }
@@ -77,13 +79,13 @@ fun Registration(){
                 },
                     shape = RectangleShape, colors = ButtonDefaults
                         .buttonColors(
-                            backgroundColor = if(!isSignIn) Color(0xFF8B1DB3) else Color.LightGray                        )) {
+                            backgroundColor = if(!isSignIn) Color(0xFFFF9A6E) else Color.LightGray                        )) {
                     Text("Регистрация")
                 }
             }
-            if(isSignIn){
+            if(isSignIn)
                 SignIn()
-            } else SignOn()
+             else SignOn()
         }
     }
 }
@@ -97,25 +99,79 @@ fun SignIn(){
     },
         label = { Text("Введите имя", color = Color.Black)},
         value = name, colors = TextFieldDefaults.colors(
-            focusedTextColor = Color.Black
+            focusedTextColor = Color(0xFFE3E3D3),
+            unfocusedContainerColor = Color(0xFFE3E3D3)
         ))
     OutlinedTextField(onValueChange = {
         password = it
     },
         label = { Text("Пароль", color = Color.Black)},
         value = password, colors = TextFieldDefaults.colors(
-            focusedTextColor = Color.Black
+            focusedTextColor = Color(0xFFE3E3D3),
+            unfocusedContainerColor = Color(0xFFE3E3D3)
         ),
         visualTransformation = PasswordVisualTransformation()
     )
     Button(onClick = {},
-        modifier = Modifier.fillMaxWidth(),
-        shape = RectangleShape) {
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 4.dp),
+        shape = RectangleShape, colors = ButtonDefaults.buttonColors(
+            backgroundColor = Color(0xFFFF9A6E)
+        )) {
         Text("Войти")
     }
 
 }
 @Composable
 fun SignOn(){
+    var name by remember { mutableStateOf("") }
+    var ip by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var info by remember { mutableStateOf("") }
 
+    OutlinedTextField(onValueChange = {
+        name = it
+    },
+        label = { Text("Введите имя", color = Color.Black)},
+        value = name, colors = TextFieldDefaults.colors(
+            unfocusedContainerColor = Color(0xFFE3E3D3),
+            focusedContainerColor = Color(0xFFE3E3D3)
+        ))
+    OutlinedTextField(onValueChange = {
+        ip = it
+    },
+        label = { Text("Номер ИП", color = Color.Black)},
+        value = ip, colors = TextFieldDefaults.colors(
+            focusedContainerColor = Color(0xFFE3E3D3), 
+            unfocusedContainerColor = Color(0xFFE3E3D3)
+        ))
+    OutlinedTextField(onValueChange = {
+        password = it
+    },
+        label = { Text("Пароль", color = Color.Black)},
+        value = password, colors = TextFieldDefaults.colors(
+            focusedContainerColor = Color(0xFFE3E3D3),
+            unfocusedContainerColor = Color(0xFFE3E3D3)
+        ),
+        visualTransformation = PasswordVisualTransformation()
+    )
+    OutlinedTextField(onValueChange = {
+        info = it
+    },
+        label = { Text("Информация о предприятии", color = Color.Black)},
+        value = info, colors = TextFieldDefaults.colors(
+            focusedContainerColor = Color(0xFFE3E3D3),
+            unfocusedContainerColor = Color(0xFFE3E3D3)
+        )
+    )
+    Button(onClick = {},
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 4.dp),
+        shape = RectangleShape, colors = ButtonDefaults.buttonColors(
+            backgroundColor = Color(0xFFFF9A6E)
+        )) {
+        Text("Создать аккаунт")
+    }
 }
