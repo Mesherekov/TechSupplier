@@ -11,7 +11,7 @@ class MainViewModel: ViewModel() {
 
     fun addDetail(detail: Detail){
         firestore.collection("Company")
-            .document(firebaseAuth.uid.hashCode().toString())
+            .document(firebaseAuth.uid.toString())
             .set(detail)
     }
 
