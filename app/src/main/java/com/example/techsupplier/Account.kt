@@ -257,6 +257,8 @@ fun Profile(detail: List<Detail>, isSuccess: MutableState<Boolean>){
     val currentUser = auth.currentUser
     val company = remember {mutableStateOf(Company())}
     val isInfo = remember { mutableStateOf(false) }
+    val isDetail = remember { mutableStateOf(false) }
+
 
     if (currentUser!=null){
         firestore.collection(Paths.COMPANY).document(currentUser.uid).get().addOnCompleteListener { snapshot ->
@@ -266,92 +268,98 @@ fun Profile(detail: List<Detail>, isSuccess: MutableState<Boolean>){
     if (isInfo.value){
         InfoCompany(company.value, isInfo)
     }else {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .navigationBarsPadding()
-                .statusBarsPadding(),
-            contentAlignment = Alignment.TopCenter
-        ) {
-            Column(Modifier.fillMaxWidth()) {
-                Column(
-                    Modifier.border(
-                        2.dp,
-                        color = Color.DarkGray
-                    )
-                        .padding(bottom = 3.dp)
-                ) {
-                    Spacer(Modifier.height(20.dp))
-                    Box(
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(3.dp), contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Person,
-                            contentDescription = "profile",
-                            modifier = Modifier.clip(CircleShape).size(80.dp)
+        if (isDetail.value){
+            DetailCard(company.value, isDetail)
+        }else {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .navigationBarsPadding()
+                    .statusBarsPadding(),
+                contentAlignment = Alignment.TopCenter
+            ) {
+                Column(Modifier.fillMaxWidth()) {
+                    Column(
+                        Modifier.border(
+                            2.dp,
+                            color = Color.DarkGray
                         )
-                    }
-                    Box(
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(3.dp), contentAlignment = Alignment.Center
+                            .padding(bottom = 3.dp)
                     ) {
-                        Row(horizontalArrangement = Arrangement.SpaceBetween) {
-                            Text(
-                                company.value.name,
-                                color = Color.Black,
-                                fontSize = 24.sp
+                        Spacer(Modifier.height(20.dp))
+                        Box(
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(3.dp), contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Person,
+                                contentDescription = "profile",
+                                modifier = Modifier.clip(CircleShape).size(80.dp)
                             )
                         }
-                    }
-                    Box(
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(3.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
+                        Box(
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(3.dp), contentAlignment = Alignment.Center
+                        ) {
+                            Row(horizontalArrangement = Arrangement.SpaceBetween) {
+                                Text(
+                                    company.value.name,
+                                    color = Color.Black,
+                                    fontSize = 24.sp
+                                )
+                            }
+                        }
+                        Box(
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(3.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
                             Text("Информация", color = Color.Blue, modifier = Modifier.clickable {
                                 isInfo.value = true
                             }, fontSize = 17.sp)
-                        Box(modifier = Modifier.fillMaxWidth(),
-                            contentAlignment = Alignment.CenterEnd) {
-                            Icon(
-                                painter = painterResource(R.drawable.outline_logout_24),
-                                contentDescription = "logout",
-                                modifier = Modifier.clickable {
-                                    auth.signOut()
-                                    isSuccess.value = false
-                                }.scale(1.5f).padding(5.dp)
-                            )
+                            Box(
+                                modifier = Modifier.fillMaxWidth(),
+                                contentAlignment = Alignment.CenterEnd
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.outline_logout_24),
+                                    contentDescription = "logout",
+                                    modifier = Modifier.clickable {
+                                        auth.signOut()
+                                        isSuccess.value = false
+                                    }.scale(2f).padding(10.dp)
+                                )
+                            }
+                        }
+
+                    }
+
+                    LazyColumn(modifier = Modifier.fillMaxWidth()) {
+                        itemsIndexed(detail) { _, item ->
+                            DetailOne(item)
                         }
                     }
-
                 }
-
-                LazyColumn(modifier = Modifier.fillMaxWidth()) {
-                    itemsIndexed(detail) { _, item ->
-                        DetailOne(item)
-                    }
-                }
-            }
-            Box(
-                Modifier
-                    .fillMaxSize()
-                    .navigationBarsPadding(), contentAlignment = Alignment.Center
-            ) {
-                Button(
-                    onClick = {
-
-                    }, colors = ButtonDefaults.buttonColors(
-                        backgroundColor = Color(0xFFFF9A6E)
-                    )
+                Box(
+                    Modifier
+                        .fillMaxSize()
+                        .navigationBarsPadding(), contentAlignment = Alignment.Center
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = "add", modifier = Modifier.scale(1.5f)
-                    )
+                    Button(
+                        onClick = {
+                            isDetail.value = true
+                        }, colors = ButtonDefaults.buttonColors(
+                            backgroundColor = Color(0xFFFF9A6E)
+                        )
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = "add", modifier = Modifier.scale(1.5f)
+                        )
+                    }
                 }
             }
         }
