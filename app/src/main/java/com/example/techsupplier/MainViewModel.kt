@@ -1,5 +1,6 @@
 package com.example.techsupplier
 
+import androidx.compose.ui.graphics.Path
 import androidx.lifecycle.ViewModel
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
@@ -16,5 +17,12 @@ class MainViewModel: ViewModel() {
     }
 
     fun getAllDetails(){
+        firestore.collection(Paths.COMPANY).document().addSnapshotListener { i, item ->
+
+
+        }
+    }
+    fun createAccount(company: Company, password: String){
+
     }
 }

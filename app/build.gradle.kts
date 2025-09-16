@@ -60,7 +60,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")
     implementation("io.coil-kt.coil3:coil:3.0.0-alpha09")
     implementation("io.coil-kt.coil3:coil-compose:3.0.0-alpha09")
-    implementation(libs.firebase.storage)
+
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))

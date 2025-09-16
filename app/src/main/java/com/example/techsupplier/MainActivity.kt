@@ -31,6 +31,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import androidx.wear.compose.navigation.currentBackStackEntryAsState
@@ -42,9 +45,15 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
         setContent {
             val navController = rememberNavController()
             TechSupplierTheme {
+                val insetsController = WindowCompat.getInsetsController(window, window.decorView)
+                insetsController.apply {
+                    hide(WindowInsetsCompat.Type.statusBars())
+                    systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+                }
                 Scaffold(
                     bottomBar = {
                         BottomNavBar(
@@ -68,7 +77,6 @@ class MainActivity : ComponentActivity() {
                     }
                 ) {
                     Account()
-                    val e = 0
                 }
                 }
         }
