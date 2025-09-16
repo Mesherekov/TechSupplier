@@ -68,8 +68,9 @@ class MainActivity : ComponentActivity() {
                     }
                 ) {
                     Account()
+                    val e = 0
                 }
-            }
+                }
         }
     }
     @Composable
