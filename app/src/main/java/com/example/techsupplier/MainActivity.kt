@@ -100,7 +100,8 @@ fun DetailOne(detail: Detail){
                 contentDescription = "wallet"
             )
             Text(detail.company.name,
-                fontSize = 10.sp)
+                fontSize = 10.sp);
+
             Text(detail.name)
         }
     }
