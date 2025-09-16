@@ -2,6 +2,7 @@ package com.example.techsupplier
 
 import android.annotation.SuppressLint
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -34,17 +35,26 @@ import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import androidx.wear.compose.navigation.currentBackStackEntryAsState
 import coil3.compose.AsyncImage
 import com.example.techsupplier.ui.theme.TechSupplierTheme
+import com.google.firebase.Firebase
+import com.google.firebase.auth.auth
 
 class MainActivity : ComponentActivity() {
     @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        val mainViewModel = ViewModelProvider(this)[MainViewModel::class]
+        val currentUser = Firebase.auth.currentUser
+        if (currentUser!=null){
+            mainViewModel.getProfile(currentUser.uid)
+
+        }
 
         setContent {
             val navController = rememberNavController()
@@ -59,12 +69,12 @@ class MainActivity : ComponentActivity() {
                         BottomNavBar(
                             items = listOf(
                                 BottomNavItem(
-                                    "Home",
+                                    "Главная",
                                     route = "home",
                                     icon = Icons.Default.Home
                                 ),
                                 BottomNavItem(
-                                    "Profile",
+                                    "Профиль",
                                     route = "profile",
                                     icon = Icons.Default.Person
                                 )
@@ -76,19 +86,20 @@ class MainActivity : ComponentActivity() {
                         )
                     }
                 ) {
-                    Account()
+                    Navigation(navController = navController)
                 }
                 }
         }
     }
-    @Composable
-    fun DetailsList(details: List<Detail>){
-        LazyColumn(modifier = Modifier
-            .fillMaxWidth()
-            .padding(3.dp)) {
-            itemsIndexed(details){ _, item ->
-                DetailOne(item)
-            }
+
+}
+@Composable
+fun DetailsList(details: List<Detail>){
+    LazyColumn(modifier = Modifier
+        .fillMaxWidth()
+        .padding(3.dp)) {
+        itemsIndexed(details){ _, item ->
+            DetailOne(item)
         }
     }
 }
@@ -97,7 +108,7 @@ fun DetailOne(detail: Detail){
     Card(elevation = CardDefaults.elevatedCardElevation(4.dp)) {
         Column {
             AsyncImage(
-                model = detail.imageUrl,
+                model = R.drawable.ebd468e4bf0f7e63281e411013c81801,
                 contentDescription = "detail",
                 modifier = Modifier
                     .padding(2.dp)
@@ -108,7 +119,7 @@ fun DetailOne(detail: Detail){
                 contentDescription = "wallet"
             )
             Text(detail.company.name,
-                fontSize = 10.sp);
+                fontSize = 10.sp)
 
             Text(detail.name)
         }

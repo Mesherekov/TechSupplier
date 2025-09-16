@@ -2,19 +2,27 @@ package com.example.techsupplier
 
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Done
+import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -41,10 +49,12 @@ import androidx.wear.compose.material.ButtonDefaults
 import androidx.wear.compose.material.Text
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
+import com.google.firebase.firestore.firestore
 
 
 @Composable
 fun Account(){
+
     val currentUser = Firebase.auth.currentUser
     val isSuccess = remember {
         mutableStateOf(currentUser!=null)
@@ -55,7 +65,7 @@ fun Account(){
     ) {
         Column {
             if (!isSuccess.value) Registration(isSuccess)
-            else Profile(emptyList(), currentUser?.email.toString())
+            else Profile(emptyList(),  isSuccess)
         }
     }
 }
@@ -66,7 +76,6 @@ fun Registration(isSuccess: MutableState<Boolean>) {
     var isSignIn by remember {
         mutableStateOf(true)
     }
-
     Card(elevation = CardDefaults
         .elevatedCardElevation(4.dp), colors = CardDefaults.cardColors(
             containerColor = Color(0xFFF8F8F0)
@@ -93,7 +102,7 @@ fun Registration(isSuccess: MutableState<Boolean>) {
                 },
                     shape = RectangleShape, colors = ButtonDefaults
                         .buttonColors(
-                            backgroundColor = if(!isSignIn) Color(0xFFFF9A6E) else Color.LightGray                        )) {
+                            backgroundColor = if(!isSignIn) Color(0xFFFF9A6E) else Color.LightGray)) {
                     Text("Регистрация")
                 }
             }
@@ -156,6 +165,7 @@ fun SignUP(isSuccess: MutableState<Boolean>) {
     var noti by remember { mutableStateOf("Создать аккаунт") }
 
     val auth = Firebase.auth
+    val firestore = Firebase.firestore
 
 
     OutlinedTextField(onValueChange = {
@@ -216,6 +226,10 @@ fun SignUP(isSuccess: MutableState<Boolean>) {
             auth.createUserWithEmailAndPassword(gmail, password)
                 .addOnCompleteListener {task ->
                     noti = if(task.isSuccessful){
+                        firestore.collection(Paths.COMPANY)
+                            .document(auth.uid.toString()).set(
+                            Company(name, info, ip, gmail, phone, auth.uid.toString())
+                        )
                         isSuccess.value = true
                         "Аккаунт создан"
                     } else{
@@ -237,53 +251,176 @@ fun SignUP(isSuccess: MutableState<Boolean>) {
 
 
 @Composable
-fun Profile(detail: List<Detail>, info: String){
+fun Profile(detail: List<Detail>, isSuccess: MutableState<Boolean>){
+    val firestore = Firebase.firestore
     val auth = Firebase.auth
-    Box(modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.TopCenter) {
-        Column(Modifier.fillMaxWidth()) {
-            Column(
-                Modifier.border(
-                    2.dp,
-                    color = Color.DarkGray
-                )
-                    .padding(bottom = 3.dp)
-            ) {
-                Box(
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(3.dp), contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Person,
-                        contentDescription = "profile",
-                        modifier = Modifier.clip(CircleShape).scale(1.5f)
+    val currentUser = auth.currentUser
+    val company = remember {mutableStateOf(Company())}
+    val isInfo = remember { mutableStateOf(false) }
+
+    if (currentUser!=null){
+        firestore.collection(Paths.COMPANY).document(currentUser.uid).get().addOnCompleteListener { snapshot ->
+            company.value = snapshot.result.toObject(Company::class.java) ?: Company(name = "Error")
+        }
+    }
+    if (isInfo.value){
+        InfoCompany(company.value, isInfo)
+    }else {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .navigationBarsPadding()
+                .statusBarsPadding(),
+            contentAlignment = Alignment.TopCenter
+        ) {
+            Column(Modifier.fillMaxWidth()) {
+                Column(
+                    Modifier.border(
+                        2.dp,
+                        color = Color.DarkGray
                     )
-                }
-                Box(Modifier
-                    .fillMaxWidth()
-                    .padding(3.dp), contentAlignment = Alignment.Center) {
-                    Row {
-                        Text(
-                            info,
-                            color = Color.Black,
-                            fontSize = 24.sp
-                        )
+                        .padding(bottom = 3.dp)
+                ) {
+                    Spacer(Modifier.height(20.dp))
+                    Box(
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(3.dp), contentAlignment = Alignment.Center
+                    ) {
                         Icon(
-                            painter = painterResource(R.drawable.outline_logout_24),
-                            contentDescription = "logout",
-                            modifier = Modifier.clickable{
-                                auth.signOut()
-                            }.scale(1.5f).padding(5.dp)
+                            imageVector = Icons.Default.Person,
+                            contentDescription = "profile",
+                            modifier = Modifier.clip(CircleShape).size(80.dp)
                         )
+                    }
+                    Box(
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(3.dp), contentAlignment = Alignment.Center
+                    ) {
+                        Row(horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text(
+                                company.value.name,
+                                color = Color.Black,
+                                fontSize = 24.sp
+                            )
+                        }
+                    }
+                    Box(
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(3.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                            Text("Информация", color = Color.Blue, modifier = Modifier.clickable {
+                                isInfo.value = true
+                            }, fontSize = 17.sp)
+                        Box(modifier = Modifier.fillMaxWidth(),
+                            contentAlignment = Alignment.CenterEnd) {
+                            Icon(
+                                painter = painterResource(R.drawable.outline_logout_24),
+                                contentDescription = "logout",
+                                modifier = Modifier.clickable {
+                                    auth.signOut()
+                                    isSuccess.value = false
+                                }.scale(1.5f).padding(5.dp)
+                            )
+                        }
+                    }
+
+                }
+
+                LazyColumn(modifier = Modifier.fillMaxWidth()) {
+                    itemsIndexed(detail) { _, item ->
+                        DetailOne(item)
                     }
                 }
             }
-            LazyColumn(modifier = Modifier.fillMaxWidth()) {
-                itemsIndexed(detail) { _, item ->
-                    DetailOne(item)
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .navigationBarsPadding(), contentAlignment = Alignment.Center
+            ) {
+                Button(
+                    onClick = {
+
+                    }, colors = ButtonDefaults.buttonColors(
+                        backgroundColor = Color(0xFFFF9A6E)
+                    )
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = "add", modifier = Modifier.scale(1.5f)
+                    )
                 }
             }
         }
+    }
+}
+
+@Composable
+fun InfoCompany(company: Company, isInfo: MutableState<Boolean>){
+    var name by remember { mutableStateOf(company.name) }
+    var info by remember { mutableStateOf(company.info) }
+    var phone by remember { mutableStateOf(company.phone) }
+    val firestore = Firebase.firestore
+    val auth = Firebase.auth
+    Card(elevation = CardDefaults.elevatedCardElevation(3.dp), modifier = Modifier.fillMaxWidth(0.7f),
+         colors = CardDefaults.cardColors(
+            containerColor = Color(0xFFFF9A6E)
+        )) {
+        Box(modifier = Modifier.fillMaxWidth(),
+            contentAlignment = Alignment.Center) {
+            Column(modifier = Modifier.padding(2.dp)) {
+                Row {
+                    Icon(imageVector = Icons.Default.Email, contentDescription = "email")
+                    Text(company.gmail, fontSize = 17.sp, color = Color.Black)
+                    Icon(
+                        imageVector = Icons.Default.Done,
+                        contentDescription = "done", modifier = Modifier.weight(1f).clickable{
+                            firestore.collection(Paths.COMPANY)
+                                .document(auth.uid.toString())
+                                .update("info", info)
+                            firestore.collection(Paths.COMPANY)
+                                .document(auth.uid.toString())
+                                .update("phone", phone)
+                            firestore.collection(Paths.COMPANY)
+                                .document(auth.uid.toString())
+                                .update("name", name)
+                            isInfo.value = false
+                        }
+                    )
+
+                }
+                OutlinedTextField(onValueChange = {
+                    name = it
+                },
+                    label = { Text("Имя", color = Color.Black)},
+                    value = name, colors = TextFieldDefaults.colors(
+                        focusedContainerColor = Color(0xFFE3E3D3),
+                        unfocusedContainerColor = Color(0xFFE3E3D3)
+                    )
+                )
+                OutlinedTextField(onValueChange = {
+                    phone = it
+                },
+                    label = { Text("Номер телефона", color = Color.Black)},
+                    value = phone, colors = TextFieldDefaults.colors(
+                        focusedContainerColor = Color(0xFFE3E3D3),
+                        unfocusedContainerColor = Color(0xFFE3E3D3)
+                    )
+                )
+                OutlinedTextField(onValueChange = {
+                    info = it
+                },
+                    label = { Text("Информация о предприятии", color = Color.Black)},
+                    value = info, colors = TextFieldDefaults.colors(
+                        focusedContainerColor = Color(0xFFE3E3D3),
+                        unfocusedContainerColor = Color(0xFFE3E3D3)
+                    )
+                )
+            }
+        }
+
     }
 }
