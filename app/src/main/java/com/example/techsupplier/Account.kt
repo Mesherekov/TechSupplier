@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
@@ -53,7 +54,7 @@ import com.google.firebase.firestore.firestore
 
 
 @Composable
-fun Account(){
+fun Account(details: List<Detail>){
 
     val currentUser = Firebase.auth.currentUser
     val isSuccess = remember {
@@ -65,7 +66,12 @@ fun Account(){
     ) {
         Column {
             if (!isSuccess.value) Registration(isSuccess)
-            else Profile(emptyList(),  isSuccess)
+            else {
+                val ownDetails = details.filter {
+                    it.company.uid == currentUser?.uid
+                }
+                Profile(ownDetails,  isSuccess)
+            }
         }
     }
 }
@@ -286,17 +292,39 @@ fun Profile(detail: List<Detail>, isSuccess: MutableState<Boolean>){
                         )
                             .padding(bottom = 3.dp)
                     ) {
-                        Spacer(Modifier.height(20.dp))
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Box(contentAlignment = Alignment.CenterEnd,
+                            modifier = Modifier.fillMaxWidth().padding(end = 10.dp)) {
+                            Row {
+                                Button(
+                                    onClick = {
+                                        isDetail.value = true
+                                    }, colors = ButtonDefaults.buttonColors(
+                                        backgroundColor = Color(0xFFFF9A6E)
+                                    ),
+                                    modifier = Modifier.size(70.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Add,
+                                        contentDescription = "add",
+                                        modifier = Modifier.scale(2f)
+                                    )
+                                }
+                                Spacer(Modifier.width(7.dp))
+                            }
+                        }
                         Box(
                             Modifier
                                 .fillMaxWidth()
                                 .padding(3.dp), contentAlignment = Alignment.Center
                         ) {
-                            Icon(
-                                imageVector = Icons.Default.Person,
-                                contentDescription = "profile",
-                                modifier = Modifier.clip(CircleShape).size(80.dp)
-                            )
+
+                              Icon(
+                                  imageVector = Icons.Default.Person,
+                                  contentDescription = "profile",
+                                  modifier = Modifier.clip(CircleShape).size(80.dp)
+                              )
+
                         }
                         Box(
                             Modifier
@@ -324,42 +352,30 @@ fun Profile(detail: List<Detail>, isSuccess: MutableState<Boolean>){
                                 modifier = Modifier.fillMaxWidth(),
                                 contentAlignment = Alignment.CenterEnd
                             ) {
-                                Icon(
-                                    painter = painterResource(R.drawable.outline_logout_24),
-                                    contentDescription = "logout",
-                                    modifier = Modifier.clickable {
-                                        auth.signOut()
-                                        isSuccess.value = false
-                                    }.scale(2f).padding(10.dp)
-                                )
+                                Row {
+                                    Icon(
+                                        painter = painterResource(R.drawable.outline_logout_24),
+                                        contentDescription = "logout",
+                                        modifier = Modifier.clickable {
+                                            auth.signOut()
+                                            isSuccess.value = false
+                                        }.scale(2.2f).padding(10.dp)
+                                    )
+                                    Spacer(Modifier.width(12.dp))
+                                }
                             }
                         }
 
                     }
 
-                    LazyColumn(modifier = Modifier.fillMaxWidth()) {
-                        itemsIndexed(detail) { _, item ->
-                            DetailOne(item)
-                        }
-                    }
+                    DetailsList(detail)
                 }
                 Box(
                     Modifier
                         .fillMaxSize()
                         .navigationBarsPadding(), contentAlignment = Alignment.Center
                 ) {
-                    Button(
-                        onClick = {
-                            isDetail.value = true
-                        }, colors = ButtonDefaults.buttonColors(
-                            backgroundColor = Color(0xFFFF9A6E)
-                        )
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Add,
-                            contentDescription = "add", modifier = Modifier.scale(1.5f)
-                        )
-                    }
+
                 }
             }
         }

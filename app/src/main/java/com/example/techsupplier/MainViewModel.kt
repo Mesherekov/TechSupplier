@@ -19,6 +19,9 @@ class MainViewModel: ViewModel() {
     private val _stateFlowProfile = MutableStateFlow<Company>(Company())
     val profileState: StateFlow<Company> = _stateFlowProfile.asStateFlow()
 
+    private val _stateFlowDetails = MutableStateFlow< List<Detail>>(emptyList())
+    val detailsState: StateFlow<List<Detail>> = _stateFlowDetails.asStateFlow()
+
     fun addDetail(detail: Detail){
         firestore.collection("Company")
             .document(firebaseAuth.uid.toString())
@@ -26,8 +29,8 @@ class MainViewModel: ViewModel() {
     }
 
     fun getAllDetails(){
-        firestore.collection(Paths.COMPANY).document().addSnapshotListener { i, item ->
-
+        firestore.collection(Paths.DETAILS).addSnapshotListener { snapshot, ex ->
+            _stateFlowDetails.value = snapshot?.toObjects(Detail::class.java) ?: emptyList()
         }
     }
     fun getProfile(uid: String){
