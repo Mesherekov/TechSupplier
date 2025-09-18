@@ -242,7 +242,9 @@ fun FilterCard(
     }
 }
 @Composable
-fun DetailsList(details: List<Detail>, innerPadding: PaddingValues){
+fun DetailsList(details: List<Detail>,
+                innerPadding: PaddingValues,
+                isOwn: Boolean = false){
     val isDetailInfo = remember {
         mutableIntStateOf(-1)
     }
@@ -289,7 +291,8 @@ fun DetailsList(details: List<Detail>, innerPadding: PaddingValues){
         else -> DetailInfo(
             details[isDetailInfo.intValue],
             isDetailInfo,
-            uid
+            uid,
+            isOwn
         )
     }
 }

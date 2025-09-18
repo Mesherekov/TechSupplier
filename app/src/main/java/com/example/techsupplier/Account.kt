@@ -367,7 +367,7 @@ fun Profile(detail: List<Detail>, isSuccess: MutableState<Boolean>, innerPadding
 
                     }
 
-                    DetailsList(detail, innerPadding)
+                    DetailsList(detail, innerPadding, true)
                 }
                 Box(
                     Modifier

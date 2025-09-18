@@ -19,7 +19,12 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountBox
+import androidx.compose.material.icons.filled.Done
+import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -27,8 +32,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableIntState
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -39,12 +46,16 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
+import com.google.firebase.Firebase
+import com.google.firebase.auth.auth
+import com.google.firebase.firestore.firestore
 
 @Suppress("DEPRECATION")
 @Composable
 fun DetailInfo(detail: Detail,
                isDetailInfo: MutableIntState,
-               uid: MutableState<String>){
+               uid: MutableState<String>,
+               isOwn: Boolean = false){
     val rand = (0..2).random()
     val listImages = listOf(R.drawable.gear_wheel1,
         R.drawable.gear_wheel2,
@@ -94,8 +105,10 @@ fun DetailInfo(detail: Detail,
                             start = offset,
                             end = offset
                         ).firstOrNull()?.let { annotation ->
-                            uid.value = detail.company.uid
-                            isDetailInfo.intValue = -2
+                            if (!isOwn) {
+                                uid.value = detail.company.uid
+                                isDetailInfo.intValue = -2
+                            }
                         }
                     })
                 Row(horizontalArrangement = Arrangement.SpaceBetween) {
@@ -118,7 +131,7 @@ fun Profile(detail: List<Detail>,
 
     val detail = detail.filter { it.company.uid == uid.value }
     if (isInfo.value){
-        InfoCompany(detail.first().company, isInfo)
+        InfoCompany2(detail.first().company, isInfo)
     }else {
         if (isDetail.value){
             DetailCard(detail.first().company, isDetail)
@@ -183,7 +196,7 @@ fun Profile(detail: List<Detail>,
 
                     }
 
-                    DetailsList(detail, innerPadding)
+                    DetailsList(detail, innerPadding, true)
                 }
                 Box(
                     Modifier
@@ -193,6 +206,84 @@ fun Profile(detail: List<Detail>,
 
                 }
             }
+        }
+    }
+}
+@Composable
+fun InfoCompany2(company: Company, isInfo: MutableState<Boolean>){
+    var name by remember { mutableStateOf(company.name) }
+    var info by remember { mutableStateOf(company.info) }
+    var phone by remember { mutableStateOf(company.phone) }
+    val firestore = Firebase.firestore
+    val auth = Firebase.auth
+    Box(modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center) {
+        Card(
+            elevation = CardDefaults.elevatedCardElevation(3.dp),
+            modifier = Modifier.fillMaxWidth(0.7f),
+            colors = CardDefaults.cardColors(
+                containerColor = Color(0xFFE3E3D3)
+            )
+        ) {
+            Box(
+                modifier = Modifier.fillMaxWidth(),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(modifier = Modifier.padding(2.dp)) {
+                    Row(modifier = Modifier.padding(3.dp)) {
+                        Icon(imageVector = Icons.Default.Email, contentDescription = "email")
+                        androidx.wear.compose.material.Text(
+                            company.gmail,
+                            fontSize = 17.sp,
+                            color = Color.Black
+                        )
+                        Icon(
+                            imageVector = Icons.Default.Done,
+                            contentDescription = "done", modifier = Modifier.weight(1f).clickable {
+                                firestore.collection(Paths.COMPANY)
+                                    .document(auth.uid.toString())
+                                    .update("info", info)
+                                firestore.collection(Paths.COMPANY)
+                                    .document(auth.uid.toString())
+                                    .update("phone", phone)
+                                firestore.collection(Paths.COMPANY)
+                                    .document(auth.uid.toString())
+                                    .update("name", name)
+                                isInfo.value = false
+                            }
+                        )
+
+                    }
+                    Row(modifier = Modifier.padding(3.dp)) {
+                        Icon(imageVector = Icons.Default.AccountBox, contentDescription = "name")
+                        androidx.wear.compose.material.Text(
+                            company.name,
+                            fontSize = 17.sp,
+                            color = Color.Black
+                        )
+                    }
+                    Row(modifier = Modifier.padding(3.dp)) {
+                        Icon(imageVector = Icons.Default.Phone, contentDescription = "email")
+                        androidx.wear.compose.material.Text(
+                            company.phone,
+                            fontSize = 17.sp,
+                            color = Color.Black
+                        )
+                    }
+                    Row(
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier.padding(3.dp)
+                    ) {
+                        Icon(imageVector = Icons.Default.Info, contentDescription = "email")
+                        androidx.wear.compose.material.Text(
+                            company.info,
+                            fontSize = 17.sp,
+                            color = Color.Black
+                        )
+                    }
+                }
+            }
+
         }
     }
 }
