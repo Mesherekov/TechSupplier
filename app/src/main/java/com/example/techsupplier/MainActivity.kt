@@ -7,8 +7,10 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -26,6 +28,10 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -46,11 +52,6 @@ import coil3.compose.AsyncImage
 import com.example.techsupplier.ui.theme.TechSupplierTheme
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import com.google.firestore.admin.v1.Index
 
 class MainActivity : ComponentActivity() {
     @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -94,9 +95,10 @@ class MainActivity : ComponentActivity() {
                             }
                         )
                     }
-                ) {
+                ) {innerPadding ->
                     Navigation(navController = navController,
-                        mainViewModel.detailsState.collectAsState().value)
+                        mainViewModel.detailsState.collectAsState().value,
+                        innerPadding)
                 }
                 }
         }
@@ -104,22 +106,33 @@ class MainActivity : ComponentActivity() {
 
 }
 @Composable
-fun DetailsList(details: List<Detail>){
+fun DetailsList(details: List<Detail>, innerPadding: PaddingValues){
     val isDetailInfo = remember {
         mutableIntStateOf(-1)
     }
-    if (isDetailInfo.intValue==-1) {
-        LazyVerticalGrid(
+    val uid = remember { mutableStateOf("") }
+    when(isDetailInfo.intValue){
+        -1->{LazyVerticalGrid(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(3.dp),
+                .padding(innerPadding)
+                .navigationBarsPadding(),
             columns = GridCells.Fixed(2)
         ) {
             itemsIndexed(details) { index, item ->
                 DetailOne(item, isDetailInfo, index)
             }
-        }
-    } else DetailInfo(details[isDetailInfo.intValue])
+        }}
+        -2 -> Profile(details,
+            innerPadding = innerPadding,
+            uid
+            )
+        else -> DetailInfo(
+            details[isDetailInfo.intValue],
+            isDetailInfo,
+            uid
+        )
+    }
 }
 @Composable
 fun DetailOne(detail: Detail,
