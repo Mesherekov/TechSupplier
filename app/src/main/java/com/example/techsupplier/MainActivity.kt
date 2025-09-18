@@ -6,21 +6,27 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -29,15 +35,19 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -104,24 +114,174 @@ class MainActivity : ComponentActivity() {
     }
 
 }
+
+@Composable
+fun FilterCard(
+    isFilter: MutableState<Boolean>,
+    details: MutableState<String>
+){
+    var isMechanic by remember{ mutableStateOf(false) }
+    var isElectro by remember{ mutableStateOf(false) }
+    var isAnother by remember{ mutableStateOf(false) }
+    Box(modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
+        contentAlignment = Alignment.TopCenter) {
+    Card(elevation = CardDefaults.elevatedCardElevation(3.dp), modifier = Modifier.fillMaxWidth(0.7f),
+        colors = CardDefaults.cardColors(
+            containerColor = Color(0xFFE3E3D3)
+        )) {
+        Column {
+            Box(
+                modifier = Modifier.fillMaxWidth(),
+                contentAlignment = Alignment.CenterEnd
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Done,
+                    contentDescription = "done",
+                    modifier = Modifier
+                        .scale(1.5f)
+                        .padding(end = 8.dp).clickable {
+                        if (onlyOneIsTrue(
+                                isAnother,
+                                isMechanic,
+                                isElectro
+                            )
+                        ) {
+                            var category = ""
+                            if (isMechanic) category = "Механическое"
+                            if (isElectro) category = "Электрическое"
+                            if (isAnother) category = "Другое"
+                            details.value = category
+                        }
+                        isFilter.value = false
+                    }
+                )
+            }
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .height(56.dp)
+                    .toggleable(
+                        value = isMechanic,
+                        onValueChange = { isMechanic = !isMechanic },
+                        role = Role.Checkbox
+                    )
+                    .padding(horizontal = 16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Checkbox(
+                    checked = isMechanic,
+                    onCheckedChange = null, colors = CheckboxDefaults.colors(
+                        uncheckedColor = Color.DarkGray,
+                        disabledUncheckedColor = Color.Black,
+                        checkedColor = Color(0xFFE3E3D3),
+                        checkmarkColor = Color.Black
+                    )
+                )
+                androidx.wear.compose.material.Text(
+                    Filters.MECHANIC,
+                    color = Color.Black,
+                    fontSize = 16.sp
+                )
+            }
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .height(56.dp)
+                    .toggleable(
+                        value = isElectro,
+                        onValueChange = { isElectro = !isElectro },
+                        role = Role.Checkbox
+                    )
+                    .padding(horizontal = 16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Checkbox(
+                    checked = isElectro,
+                    onCheckedChange = null, colors = CheckboxDefaults.colors(
+                        uncheckedColor = Color.DarkGray,
+                        disabledUncheckedColor = Color.Black,
+                        checkedColor = Color(0xFFE3E3D3),
+                        checkmarkColor = Color.Black
+                    )
+                )
+                androidx.wear.compose.material.Text(
+                    Filters.ELECTRO,
+                    color = Color.Black,
+                    fontSize = 16.sp
+                )
+            }
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .height(56.dp)
+                    .toggleable(
+                        value = isAnother,
+                        onValueChange = { isAnother = !isAnother },
+                        role = Role.Checkbox
+                    )
+                    .padding(horizontal = 16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Checkbox(
+                    checked = isAnother,
+                    onCheckedChange = null, colors = CheckboxDefaults.colors(
+                        uncheckedColor = Color.DarkGray,
+                        disabledUncheckedColor = Color.Black,
+                        checkedColor = Color(0xFFE3E3D3),
+                        checkmarkColor = Color.Black
+                    )
+                )
+                androidx.wear.compose.material.Text(
+                    Filters.ANOTHER,
+                    color = Color.Black,
+                    fontSize = 16.sp
+                )
+            }
+        }
+    }
+    }
+}
 @Composable
 fun DetailsList(details: List<Detail>, innerPadding: PaddingValues){
     val isDetailInfo = remember {
         mutableIntStateOf(-1)
     }
+    var filteredDetails: List<Detail>
+    val category = remember { mutableStateOf("") }
     val uid = remember { mutableStateOf("") }
     when(isDetailInfo.intValue){
-        -1->{LazyVerticalGrid(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(innerPadding)
-                .navigationBarsPadding(),
-            columns = GridCells.Fixed(2)
-        ) {
-            itemsIndexed(details) { index, item ->
-                DetailOne(item, isDetailInfo, index)
+        -1->{
+            val isFilter = remember { mutableStateOf(false) }
+
+            Column {
+                if (!isFilter.value) {
+                    Box(
+                        modifier = Modifier.fillMaxWidth().padding(17.dp),
+                        contentAlignment = Alignment.CenterEnd
+                    ) {
+                        Icon(painter = painterResource(R.drawable.outline_filter_list_24),
+                            contentDescription = "filter",
+                            modifier = Modifier.scale(1.5f).clickable{
+                                isFilter.value = true
+                            })
+                    }
+                    filteredDetails = if (category.value!="") details.filter { it.category == category.value }
+                    else details
+                    LazyVerticalGrid(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(innerPadding)
+                            .navigationBarsPadding(),
+                        columns = GridCells.Fixed(2)
+                    ) {
+                        itemsIndexed(filteredDetails) { index, item ->
+                            DetailOne(item, isDetailInfo, index)
+                        }
+                    }
+                } else {FilterCard(isFilter, category)}
             }
-        }}
+
+        }
         -2 -> Profile(details,
             innerPadding = innerPadding,
             uid
