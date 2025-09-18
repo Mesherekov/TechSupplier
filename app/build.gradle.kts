@@ -57,6 +57,7 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(libs.firebase.auth.ktx)
     testImplementation(libs.junit)
+    implementation("com.google.accompanist:accompanist-systemuicontroller:0.30.1")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")
     implementation("io.coil-kt.coil3:coil:3.0.0-alpha09")
     implementation("io.coil-kt.coil3:coil-compose:3.0.0-alpha09")

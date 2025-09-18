@@ -1,37 +1,51 @@
 package com.example.techsupplier
 
 import android.annotation.SuppressLint
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
@@ -48,6 +62,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -60,10 +75,13 @@ import androidx.navigation.compose.rememberNavController
 import androidx.wear.compose.navigation.currentBackStackEntryAsState
 import coil3.compose.AsyncImage
 import com.example.techsupplier.ui.theme.TechSupplierTheme
+import com.google.accompanist.systemuicontroller.SystemUiController
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 
 class MainActivity : ComponentActivity() {
+    @RequiresApi(Build.VERSION_CODES.S)
     @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -76,6 +94,11 @@ class MainActivity : ComponentActivity() {
         }
 
         setContent {
+            val systemUiController: SystemUiController = rememberSystemUiController()
+
+            systemUiController.isStatusBarVisible = false // Status bar
+            systemUiController.isNavigationBarVisible = false // Navigation bar
+            systemUiController.isSystemBarsVisible = false
             val navController = rememberNavController()
             TechSupplierTheme {
                 val insetsController = WindowCompat.getInsetsController(window, window.decorView)
@@ -103,7 +126,9 @@ class MainActivity : ComponentActivity() {
                                 navController.navigate(it.route)
                             }
                         )
-                    }
+                    },
+
+
                 ) {innerPadding ->
                     Navigation(navController = navController,
                         mainViewModel.detailsState.collectAsState().value,
@@ -257,6 +282,26 @@ fun DetailsList(details: List<Detail>,
 
             Column {
                 if (!isFilter.value) {
+                    var searchText by remember { mutableStateOf("") }
+                    var isSearchActive by remember { mutableStateOf(false) }
+                    if (!isOwn) {
+                        SearchBar(
+                            query = searchText,
+                            onQueryChange = { searchText = it },
+                            onSearch = { /* Выполнить поиск */ },
+                            active = isSearchActive,
+                            onActiveChange = { isSearchActive = it },
+                            placeholder = { Text("Поиск...") },
+                            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                            trailingIcon = {
+                                if (searchText.isNotEmpty()) {
+                                    IconButton(onClick = { searchText = "" }) {
+                                        Icon(Icons.Default.Close, contentDescription = "Очистить")
+                                    }
+                                }
+                            }) {
+                        }
+                    }
                     Box(
                         modifier = Modifier.fillMaxWidth().padding(17.dp),
                         contentAlignment = Alignment.CenterEnd
@@ -300,10 +345,12 @@ fun DetailsList(details: List<Detail>,
 fun DetailOne(detail: Detail,
               isDetailInfo: MutableState<Int>,
               index: Int){
-    val rand = (0..2).random()
-    val listImages = listOf(R.drawable.gear_wheel1,
-        R.drawable.gear_wheel2,
-        R.drawable.gear_wheel3)
+    val rand = (0..4).random()
+    val listImages = listOf(R.drawable.ssw,
+        R.drawable.sats,
+        R.drawable.sat3,
+        R.drawable.sat4,
+        R.drawable.sat6)
     Card(elevation = CardDefaults.elevatedCardElevation(4.dp),
         modifier = Modifier
             .padding(5.dp)
@@ -374,6 +421,60 @@ fun BottomNavBar(
                         )
                     }
                 }
+            )
+        }
+    }
+}
+
+@Composable
+fun SearchBar(
+    query: String,
+    onQueryChange: (String) -> Unit,
+    onSearch: () -> Unit,
+    active: Boolean,
+    onActiveChange: (Boolean) -> Unit,
+    placeholder: @Composable () -> Unit,
+    leadingIcon: @Composable () -> Unit,
+    trailingIcon: @Composable () -> Unit,
+    content: @Composable () -> Unit
+) {
+    if (active) {
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            shadowElevation = 8.dp,
+            shape = MaterialTheme.shapes.medium
+        ) {
+            Column {
+                // Поле поиска
+                TextField(
+                    value = query,
+                    onValueChange = onQueryChange,
+                    placeholder = placeholder,
+                    leadingIcon = leadingIcon,
+                    trailingIcon = trailingIcon,
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = TextFieldDefaults.colors(
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                        focusedContainerColor = MaterialTheme.colorScheme.surface
+                    ),
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                    keyboardActions = KeyboardActions(onSearch = { onSearch() })
+                )
+
+                // Результаты
+                content()
+            }
+        }
+    } else {
+        // Неактивный поиск (иконка)
+        OutlinedButton(
+            onClick = { onActiveChange(true) },
+            modifier = Modifier.fillMaxWidth().padding(8.dp)
+        ) {
+            Icon(Icons.Default.Search, contentDescription = "Поиск", tint = Color(0xFFA25C3E))
+            Spacer(Modifier.width(8.dp))
+            Text("Поиск",
+                color = Color(0xFFA25C3E)
             )
         }
     }
