@@ -63,7 +63,6 @@ class MainActivity : ComponentActivity() {
         val currentUser = Firebase.auth.currentUser
         if (currentUser!=null){
             mainViewModel.getProfile(currentUser.uid)
-
         }
 
         setContent {

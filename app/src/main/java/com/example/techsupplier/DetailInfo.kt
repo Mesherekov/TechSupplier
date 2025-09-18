@@ -40,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 
+@Suppress("DEPRECATION")
 @Composable
 fun DetailInfo(detail: Detail,
                isDetailInfo: MutableIntState,
@@ -115,9 +116,7 @@ fun Profile(detail: List<Detail>,
     val isInfo = remember { mutableStateOf(false) }
     val isDetail = remember { mutableStateOf(false) }
 
-    detail.apply {
-        filter { it.company.uid == uid.value }
-    }
+    val detail = detail.filter { it.company.uid == uid.value }
     if (isInfo.value){
         InfoCompany(detail.first().company, isInfo)
     }else {
